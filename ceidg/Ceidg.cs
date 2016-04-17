@@ -3,6 +3,7 @@ using System.Net;
 using HtmlAgilityPack;
 using System.Collections.Generic;
 using System.Linq;
+using ceidg.Exceptions;
 
 namespace ceidg
 {
@@ -15,7 +16,7 @@ namespace ceidg
 
 		public string Uri = "https://prod.ceidg.gov.pl/ceidg/ceidg.public.ui/";
 
-		public Ceidg (string html)
+        public void LoadHtml(string html)
 		{
 			Document = new HtmlDocument();
 			Document.LoadHtml(html);
@@ -33,21 +34,26 @@ namespace ceidg
 			Document.LoadHtml(html);
 
 			return new Subject{
-				Name = Document.GetElementbyId("MainContent_lblFirstName")?.InnerText,
-				Surname = Document.GetElementbyId("MainContent_lblLastName")?.InnerText,
-				NIP = Document.GetElementbyId("MainContent_lblNip")?.InnerText,
-				REGON = Document.GetElementbyId("MainContent_lblRegon")?.InnerText,
-				Compny = Document.GetElementbyId("MainContent_lblName")?.InnerText,
-				WWW = Document.GetElementbyId("MainContent_lblEmail")?.InnerText,
-				Email = Document.GetElementbyId("MainContent_lblWebstite")?.InnerText
+				Name = Document.GetElementbyId("MainContent_lblFirstName").InnerText,
+				Surname = Document.GetElementbyId("MainContent_lblLastName").InnerText,
+				NIP = Document.GetElementbyId("MainContent_lblNip").InnerText,
+				REGON = Document.GetElementbyId("MainContent_lblRegon").InnerText,
+				Compny = Document.GetElementbyId("MainContent_lblName").InnerText,
+				WWW = Document.GetElementbyId("MainContent_lblEmail").InnerText,
+				Email = Document.GetElementbyId("MainContent_lblWebstite").InnerText
 			};
 		}
 
 		protected List<string> GetUrls()
 		{
-			return Document.GetElementbyId("MainContent_DataListEntities")
-				.SelectNodes("//a[@class='searchITA']")
-				.Select(n => Uri + n.Attributes["href"].Value).Distinct().ToList();
+            try {
+                return Document.GetElementbyId("MainContent_DataListEntities")
+                .SelectNodes("//a[@class='searchITA']")
+                .Select(n => Uri + n.Attributes["href"].Value).Distinct().ToList();
+            } catch (NullReferenceException ex) {
+                throw new InvalidFileFormatException("Invalid file format");
+            }
+			
 		}
 	}
 }
